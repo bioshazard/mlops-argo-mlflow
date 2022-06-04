@@ -2,7 +2,8 @@
 FROM continuumio/miniconda3:4.10.3-alpine
 
 RUN pip install mlflow
-RUN pip install sqlalchemy alembic sqlparse 
+RUN pip install sqlalchemy alembic sqlparse
+RUN apk add libstdc++ curl
 
 ENV BACKEND_STORE_URI="sqlite:///mlflow.db"
 

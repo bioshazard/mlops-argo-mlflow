@@ -53,8 +53,11 @@ spec:
         parameters:
         - name: msg
       container:
-        image: docker/whalesay:latest
-        command: [cowsay]
-        args: ["{{inputs.parameters.msg}}"]
+        env:
+        - name: MLFLOW_TRACKING_URI
+          value: http://mlflow:5000
+        image: mlflow:ce-assessment-conda
+        command: ["mlflow"]
+        args: ["models", "serve", "-m", "{{inputs.parameters.msg}}", "-p", "1234"]
 
 
