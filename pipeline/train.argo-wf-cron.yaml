@@ -4,7 +4,7 @@ kind: CronWorkflow
 metadata:
   name: train-model-cron
 spec:
-  schedule: "*/10 * * * *"
+  schedule: "0 0 * * 0"
   concurrencyPolicy: "Replace"
   startingDeadlineSeconds: 0
   workflowSpec:

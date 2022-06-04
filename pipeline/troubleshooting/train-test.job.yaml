@@ -16,7 +16,7 @@ spec:
       volumes:
       - name: gapp-creds-vol
         secret:
-          secretName: gapps-creds
+          secretName: gapp-creds
           optional: false # default setting; "gapps-creds" must exist
       containers:
       - name: train-test-job

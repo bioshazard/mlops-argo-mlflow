@@ -1,74 +1,83 @@
-# CE Assessment
+# ConsumerEdge MLOps Assessment
 
 ## Overview
 
-CE Team, thank you for the chance to try out for this role in the assessment. I attempted to create from scratch a full MLOps pipeline that uses argo for cron build and deploy, but I ran out of time to get access to the second argo step so it had deploy access. This repo covers a nightly cron in argo but relies on the user to submit an argo job manually then exec into the running pod to see that the endpoint does infact load. I understand that I missed the 6h window if even by a little, but I plan before the weekend is over to finalize my vision for this deliverable and publish it to my GitHub and send you the result for review on Monday. I understand if the subsequent submission is inadmissible having taken longer than the 6h provided.
+This solution delivers a complete minimal end-to-end MLOps platform with an example model training and deployment pipeline to make predictions based on weather data from BigQuery. Components include: Argo Workflow, MLflow, and Nginx Ingress delivered on kind (k8s in docker). The intent of this deliverable is to fully automate setup and example exectution in a few simple scripts.
 
 ## Usage
 
-This solution is to be run on a local workstation with sufficient memory to run a k8s cluster using `kind` (k8s on docker). It uses ingress-nginx for ingress, argo for pipeline, mlflow for model registry and experiment tracking, it even serves the endpoint but is limited to doing so in the second step of the argo workflow at the time of writing this.
+This can be run on a local workstation or in a VM on the cloud. It requires `docker`, `helm`, `kubectl`, `kind` and `argo` CLI to leverage the automation scripts provided.
 
-### Prerequisites
+### Presetup
 
-* Install `kind` CLI: https://kind.sigs.k8s.io/docs/user/quick-start/
-* Install `kubectl` 1.23.6: `curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"`
-* Install `helm`: https://helm.sh/docs/helm/helm_install/
-* Install `argo` CLI: https://argo-cd.readthedocs.io/en/stable/getting_started/#2-download-argo-cd-cli
-* Download `GOOGLE_APPLICATION_CREDENTIALS` file to to `pipeline/training/secrets/gapp_creds.json` in repo.
+The scripts will alert you if this isn't done prior, but be prepared to create a service account at https://console.cloud.google.com/iam-admin/serviceaccounts with permissions sufficient to query from BigQuery, then create an API Key and save the private key data as `gapp_creds.json` in the repo root.
 
-### Run Setup
+### Setup
 
-Execute the steps in `setup.sh` or run the script all at once. Be sure to give the pods a sec to load up between steps.
+The scripts are meant to be run in order but `00-setup-host.sh` and `03-test-api.sh` are optional convenience scripts.
 
-### UI Access
+Script | Function | Description
+--- | --- | ---
+`bash 00-setup-host.sh` | CLI Tools | You will still need to install `argo` CLI yourself, but if you want an automated solution for setting up a few of the tools please refer to this script. It uses `asdf` to manage `helm`, `kubectl`, and `kind` (per `.tools-version`).
+`bash 01-setup-mlops.sh` | Cluster and Services | This script stands up a [kind](https://kind.sigs.k8s.io/) cluster in your local Docker and install Nginx Ingress, Argo, MLflow. It will be listening on local :80 and :443 so your browser should be able to access it if run locally.
+`bash 02-e2e-pipeline.sh` | NOAA Model Training and Serving | This script puts your `gapp_creds.json` file into the k8s cluster as a secret, sets up the weekly pipeline cron, and runs a one-time job so you don't have to wait to see how the cron will perform. It tails the one-time job logs until the model finishes training, is stored in MLflow, and is deployed in a subsequent pipeline job. It takes a while for the serving endpoint to become available, but once it shows "listening" just ^C to quit out of the log tailing. This can be run over and over to execute the one-time job if you want to see it deploy a fresh model.
+`bash 03-test-api.sh` | The moment of truth! This final script generates a random temperature or accepts an argument for the temperature, then performs a `curl` against the newly deployed endpoint.
 
-* MLFlow: http://localhost/mlflow
-* Argo (you must accept self-signed cert to access this): https://localhost/workflows
+### Web UI Access
 
-### Run a train a deploy job
+**MLflow** is accessible at http://localhost/mlflow and there is no authentication. MLflow supports authentication, but that is beyond the scope of this deliverable.
 
-* Submit manual training pipeline: `argo submit test/train.argo-wf-pipeline.yaml`
-* Visit https://localhost/workflows to see it running or run `argo list`
-* Execute `kubectl get pods -n argo` to see the `train-model-kv4qm-print-out-...` named pod that will run forever as it serves the `mlflow` endpoint
-* Test the endpoint as follows, eg:
+The **Argo Workflow** UI itself serves as https, so it is available at https://localhost/workflows/argo and requires that you accept the self-signed cert. You can also type "thisisunsafe" (all one word) to get Chrome to let you by without clicking around.
 
-```
-$ argo submit pipeline/training/test/train.argo-wf-pipeline.yaml
-Name:                train-model-b9hdg
-Namespace:           argo
-ServiceAccount:      unset (will run with the default ServiceAccount)
-Status:              Pending
-Created:             Sat Jun 04 11:54:02 -0500 (2 seconds ago)
-Progress:
-
-This workflow does not have security context set. You can run your workflow pods more securely by setting it.
-Learn more at https://argoproj.github.io/argo-workflows/workflow-pod-security-context/
-
-$ kubectl get po -n argo | grep Running | grep print
-train-model-b9hdg-print-out-3894413804   2/2     Running     0              4s
-
-# WAIT A WHILE SO CONDA CAN FINISH INSTALLING THE DEPENDENCIES (check `ps faux` to watch it)
-
-$ k exec -it train-model-b9hdg-print-out-3894413804 bash
-(base) bash-5.1# curl -X POST -H "Content-Type:application/json; format=pandas-split" --data '{"columns":["temp"],"data":[[12.8]]}' http://127.0.0.1:1234/invocations
-[9.519656133365148]
-```
-
-The plan was to give this second step permission to manage `deployments` on k8s so it could apply manifests to serve the latest model. I plan on spending the rest of the day finishing that task out of simple obession, but I did not make it in 6h with the scope I attempted to deliver here. I hope you will give me a chance to review my work with you. Thanks for the opportunity to try out!!
-
-### Weekly Cron
-
-You can apply my partion cron attempt as follows:
+## API Testing Examples
 
 ```
-argo cron create pipeline\training\train.argo-wf-cron.yaml
+$ bash 03-test-api.sh
+Using input: TEMP=36.6
+Predicted Dew Point:  
+[32.46936921312204]   
+
+$ bash 03-test-api.sh 
+Using input: TEMP=25.95
+Predicted Dew Point:
+[22.20548754637715]
+
+$ bash 03-test-api.sh 42
+Using input: TEMP=42
+Predicted Dew Point:
+[37.673590903302554]
 ```
 
-It does not attempt to serve the model in a subsequent step, but it does successfully train. I planned to add the deploy step after so it would release a fresh model nightly but did not make it in time.
+## Weekly Cron
 
-## Iteration Steps
+You can see the weekly cron with the `argo` CLI:
 
-I did not complete my full list of planned iteration steps. I leave my planning notes below.
+```
+$ argo cron list
+NAME               AGE   LAST RUN   NEXT RUN   SCHEDULE    TIMEZONE   SUSPENDED
+train-model-cron   4s    N/A        3h         0 0 * * 0              false
+```
+
+## Best Practices Applied
+
+- [12 Factor App-inspired use of ENV vars](https://12factor.net/config) for app config (eg, `MLFLOW_TRACKING_URI` for dynamic configuration as MLFlow service moved around during my iteration)
+- Baked some custom Docker images with dependencies rather than pulled ad-hoc on execution in k8s pod every time
+- `.gitignore` to prevent revisioning secrets
+- Limited deployer access for the argo workflow step to manage `mlserve` deploy object in `argo` namespace
+
+## Best Practices Compromises
+
+- Persistent volumes should be used for data integrity but the ephemeral env demonstrates the pipeline well enough
+- Developed on my Windows PC in WSL, so perms were 777 and committed as such during development, should be 0755 at most
+- I ran all container processes as root for expediency
+- No TLS in MLFlow endpoints, self-signed for Argo
+- Would have prefered to spend more time working on allowing Argo workflow provider to run outside of `argo` namespace.
+- Readiness probe on `mlserve` deployment to keep service available on old model until the new model finished installing dependencies
+- Rollout strategy on `mlserve` deployment to further benefit availability 
+
+## Raw Iteration Notes
+
+For transparency, here are the notes I kept of the steps I intended to complete to arrive at this end result:
 
 - x MLFlow Image
 - x LR model fit and push to MLFlow 
@@ -79,33 +88,11 @@ I did not complete my full list of planned iteration steps. I leave my planning 
 - x Set argo train job for weekly execution 
 - x Argo multi-step with output handoff
 - x Serve either with MLFlow or Seldon, promote latest model with Argo
-    - INFO: new plan... serve with `mlflow serve`, create sa role in argo ns to permit deploy mgmt so it can update the deployment
+    - ! Seldon is taking too much time... serve with `mlflow serve`, create sa role in argo ns to permit deploy from pod so it can publish from pipeline job
     - x update mlflow image with conda-based image for easy re-use in serve
     - x Run argo pipeline and serve built image with resulting URI (in place)
     - x Run argo pipeline and serve built image with resulting URI (with full separate deployment)
-- Finalize total automation bootstrap
-    - docker build **and** kind load
-- Finalize README
-    - Reqs: kubectl (via `asdf`?)
-- Use latest k8s if possible
-- Extra bells and whistles
-
-## Best Practices Applied
-
-- [12 Factor App-inspired use of ENV vars](https://12factor.net/config) for app config (eg, `MLFLOW_TRACKING_URI` for dynamic configuration as MLFlow service moved around during my iteration)
-- Baked custom Docker images with dependencies rather than pulled ad-hoc on execution in k8s pod every time
-
-## Best Practices Compromises
-
-- Persistent volumes should be used for data integrity but the ephemeral env demonstrate the pipeline
-- Developed on my Windows PC in WSL, so perms were 777 during development, should be 0755 at most
-- I ran everything as root for expediency
-- No TLS in MLFlow or Argo endpoints
-- Would have prefered to spend more time working on allowing Argo workflow provider to run outside of `argo` namespace.
-- Readiness probe on serve deployment to prevent failed calls
-- Not enough time to limit scope of deployer role, tried to gave super-admin access but failed in the time allotted
-
-## Scratch
-
-runs:/10f77abca3994387b52033d324401670/model
-curl -X POST -H "Content-Type:application/json; format=pandas-split" --data '{"columns":["temp"],"data":[[12.8]]}' http://localhost/mlserve/invocations
+- x Finalize total automation bootstrap
+    - x docker build **and** kind load
+- x Finalize README
+    - x Reqs: kubectl (via `asdf`?)
