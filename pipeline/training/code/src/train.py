@@ -4,29 +4,29 @@ from google.cloud import bigquery
 import pandas as pd
 import sys
 
-# bqclient = bigquery.Client()
+bqclient = bigquery.Client()
 
-# # Only select dew point and temp in year 2021 where rain_drizzle is 1
-# query_string = """
-# SELECT dewp, temp
-# FROM `bigquery-public-data.noaa_gsod.gsod2021`
-# WHERE year = '2021' AND rain_drizzle = '1'
-# """
+# Only select dew point and temp in year 2021 where rain_drizzle is 1
+query_string = """
+SELECT dewp, temp
+FROM `bigquery-public-data.noaa_gsod.gsod2021`
+WHERE year = '2021' AND rain_drizzle = '1'
+"""
 
-# df = (
-#     bqclient.query(query_string)
-#     .result()
-#     .to_dataframe(
-#         # Optionally, explicitly request to use the BigQuery Storage API. As of
-#         # google-cloud-bigquery version 1.26.0 and above, the BigQuery Storage
-#         # API is used by default.
-#         create_bqstorage_client=True,
-#     )
-# )
+df = (
+    bqclient.query(query_string)
+    .result()
+    .to_dataframe(
+        # Optionally, explicitly request to use the BigQuery Storage API. As of
+        # google-cloud-bigquery version 1.26.0 and above, the BigQuery Storage
+        # API is used by default.
+        create_bqstorage_client=True,
+    )
+)
 
 # # cache for rapid iteration
 # df.to_csv('noaa.csv')
-df = pd.read_csv('noaa.csv', index_col=0)
+# df = pd.read_csv('noaa.csv', index_col=0)
 
 # Look for insane values
 print(df.describe())
@@ -38,6 +38,10 @@ print(df.describe())
 # Clean out dewp records at 9999.9
 # Temp doesn't seem to have any weird values, so we'll leave that as is
 df_clean = df[ df['dewp'] < 200 ]
+
+
+
+
 
 # Following MLFlow lin reg tutorial
 # https://www.mlflow.org/docs/latest/tutorials-and-examples/tutorial.html
@@ -74,7 +78,6 @@ def eval_metrics(actual, pred):
 
 if __name__ == "__main__":
     warnings.filterwarnings("ignore")
-
 
     temp_X = df_clean[['temp']]
     dewp_Y = df_clean['dewp']

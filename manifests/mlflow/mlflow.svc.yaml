@@ -5,6 +5,7 @@ metadata:
   labels:
     app: mlflow
   name: mlflow
+  namespace: argo
 spec:
   ports:
   - name: 5000-5000

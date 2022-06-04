@@ -5,6 +5,7 @@ metadata:
   labels:
     app: mlflow
   name: mlflow
+  namespace: argo
 spec:
   replicas: 1
   selector:

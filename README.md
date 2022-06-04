@@ -15,11 +15,18 @@ export MLFLOW_TRACKING_URI=http://localhost:8080/
 - x MLFlow Image
 - x LR model fit and push to MLFlow 
 - x MLFlow on Kind, verify local push
-- Argo on Kind
-- Create job image with weekly execution
+- x Argo on Kind with ingress
+- x Create job image
+- Apply in argo with weekly execution 
 - Serve either with MLFlow or Seldon, promote latest model with Argo
 - Finalize total automation bootstrap
 - Finalize README
     - Reqs: kubectl (via `asdf`?)
 - Use latest k8s if possible
 - Extra bells and whistles
+
+## Best Practices
+
+- I ran everything as root for expediency
+- No TLS
+- Developed on my Windows PC in WSL, so perms were 777 during development, should be 0755 at most

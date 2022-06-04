@@ -1,2 +1,5 @@
 google-cloud-bigquery[bqstorage,pandas]
 mlflow
+scikit-learn
+scipy
+matplotlib
