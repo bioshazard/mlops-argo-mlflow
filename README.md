@@ -10,7 +10,7 @@ This can be run on a local workstation or in a VM on the cloud. It requires `doc
 
 ### Presetup
 
-The scripts will alert you if this isn't done prior, but be prepared to create a service account at https://console.cloud.google.com/iam-admin/serviceaccounts with permissions sufficient to query from BigQuery, then create an API Key and save the private key data as `gapp_creds.json` in the repo root.
+The scripts will alert you if this isn't done prior, but be prepared to create a service account at https://console.cloud.google.com/iam-admin/serviceaccounts with permissions sufficient to query from BigQuery, then create an API Key and save the private key data as `gapp_creds.json` in the repo root. Tested on k8s v1.23.6 with matching `kubectl` version.
 
 ### Setup
 
