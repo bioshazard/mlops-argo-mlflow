@@ -30,6 +30,7 @@ data:
             - name: MLFLOW_TRACKING_URI
               value: http://mlflow:5000
             resources: {}
+
     status: {}
   deploy.sh: |
     sed "s@MODEL_URI@$1@" /manifests/mlserve.deploy.yaml | tee /dev/stderr | kubectl apply -f -

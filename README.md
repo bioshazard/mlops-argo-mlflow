@@ -78,11 +78,11 @@ I did not complete my full list of planned iteration steps. I leave my planning 
 - x Apply one-time job in argo
 - x Set argo train job for weekly execution 
 - x Argo multi-step with output handoff
-- / Serve either with MLFlow or Seldon, promote latest model with Argo
-    - [INFO] new plan... serve with `mlflow serve`, create sa role in argo ns to permit deploy mgmt so it can update the deployment
+- x Serve either with MLFlow or Seldon, promote latest model with Argo
+    - INFO: new plan... serve with `mlflow serve`, create sa role in argo ns to permit deploy mgmt so it can update the deployment
     - x update mlflow image with conda-based image for easy re-use in serve
     - x Run argo pipeline and serve built image with resulting URI (in place)
-    - Run argo pipeline and serve built image with resulting URI (with full separate deployment)
+    - x Run argo pipeline and serve built image with resulting URI (with full separate deployment)
 - Finalize total automation bootstrap
     - docker build **and** kind load
 - Finalize README

@@ -1,25 +1,25 @@
-# https://argoproj.github.io/argo-workflows/walk-through/argo-cli/
-# https://argoproj.github.io/argo-workflows/walk-through/output-parameters/
-
+# https://argoproj.github.io/argo-workflows/cron-workflows/
 apiVersion: argoproj.io/v1alpha1
-kind: Workflow                  # new type of k8s spec
+kind: CronWorkflow
 metadata:
-  generateName: train-model-    # name of the workflow spec
-  namespace: argo
+  name: train-model-cron
 spec:
-  entrypoint: e2e-train-serve
-  templates:
-
+  schedule: "*/10 * * * *"
+  concurrencyPolicy: "Replace"
+  startingDeadlineSeconds: 0
+  workflowSpec:
+    entrypoint: e2e-train-serve          # invoke the train-model template
+    templates:
     - name: e2e-train-serve
       steps:
-      - - name: train-model-output
+      - - name: train-model
           template: train
       - - name: model-deploy
           template: deploy
           arguments:
             parameters:
               - name: model-uri
-                value: "{{steps.train-model-output.outputs.parameters.model-uri}}"
+                value: "{{steps.train-model.outputs.parameters.model-uri}}"
 
     - name: train              # name of the template
       volumes:
@@ -29,7 +29,7 @@ spec:
           optional: false # default setting; "gapps-creds" must exist
       container:
         name: train-test-job
-        image: argo-step:training
+        image: argo-step:training-conda
         command: ["python", "train.py"]
         # command: ['sh', '-c', 'sleep 99999']
         resources: {}
@@ -70,13 +70,3 @@ spec:
         - name: deploy-yaml-vol
           mountPath: "/manifests"
           readOnly: true
-
-
-
-
-        # command: ['sh', '-c', 'sleep 99999']
-        # image: mlflow:ce-assessment-conda
-        # command: ["mlflow"]
-        # args: ["models", "serve", "-m", "{{inputs.parameters.msg}}", "-p", "1234"]
-
-
