@@ -14,24 +14,23 @@ spec:
     spec:
       restartPolicy: Never
       volumes:
-      - name: gapp-creds-vol
-        secret:
-          secretName: gapps-creds
-          optional: false # default setting; "gapps-creds" must exist
+      - name: deploy-yaml-vol
+        configMap:
+          name: mlserve
+          optional: false # must exist
       serviceAccountName: deploy-sa
       containers:
       - name: kubectl
         image: bitnami/kubectl
-        command: ['sh', '-c', 'sleep 99999']
+        command: ['sh', '-c', 'bash /manifests/deploy.sh runs:/10f77abca3994387b52033d324401670/model']
         resources: {}
         env:
         - name: MLFLOW_TRACKING_URI
           value: http://mlflow:5000
-        - name: GOOGLE_APPLICATION_CREDENTIALS
-          value: /code/secrets/gapps_creds.json
         volumeMounts:
-        - name: gapp-creds-vol
-          mountPath: "/code/secrets"
+        - name: deploy-yaml-vol
+          mountPath: "/manifests"
           readOnly: true
-          
 status: {}
+
+# bash /manifests/deploy.sh runs:/10f77abca3994387b52033d324401670/model

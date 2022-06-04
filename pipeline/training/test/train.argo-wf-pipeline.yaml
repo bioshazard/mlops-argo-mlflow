@@ -14,12 +14,12 @@ spec:
       steps:
       - - name: train-model-output
           template: train
-      - - name: consume-test
-          template: print-out
+      - - name: model-deploy
+          template: deploy
           arguments:
             parameters:
-              - name: msg
-                value: "{{steps.train-model-output.outputs.parameters.hello-param}}"
+              - name: model-uri
+                value: "{{steps.train-model-output.outputs.parameters.model-uri}}"
 
     - name: train              # name of the template
       volumes:
@@ -44,20 +44,39 @@ spec:
           readOnly: true
       outputs:
         parameters:
-        - name: hello-param
+        - name: model-uri
           valueFrom:
             path: /code/model_uri.txt
     
-    - name: print-out
+    - name: deploy
       inputs:
         parameters:
-        - name: msg
+        - name: model-uri
+      volumes:
+      - name: deploy-yaml-vol
+        configMap:
+          name: mlserve
+          optional: false # must exist
+      serviceAccountName: deploy-sa
       container:
+        name: kubectl
+        image: bitnami/kubectl
+        command: ['sh', '-c', 'bash /manifests/deploy.sh {{inputs.parameters.model-uri}}']
+        resources: {}
         env:
         - name: MLFLOW_TRACKING_URI
           value: http://mlflow:5000
-        image: mlflow:ce-assessment-conda
-        command: ["mlflow"]
-        args: ["models", "serve", "-m", "{{inputs.parameters.msg}}", "-p", "1234"]
+        volumeMounts:
+        - name: deploy-yaml-vol
+          mountPath: "/manifests"
+          readOnly: true
+
+
+
+
+        # command: ['sh', '-c', 'sleep 99999']
+        # image: mlflow:ce-assessment-conda
+        # command: ["mlflow"]
+        # args: ["models", "serve", "-m", "{{inputs.parameters.msg}}", "-p", "1234"]
 
 

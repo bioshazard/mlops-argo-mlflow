@@ -1,0 +1,40 @@
+# From: k create deploy mlserve --image=mlflow:ce-assessment-conda --dry-run=client -o yaml | k create cm mlserve --from-file=mlserve.deploy.yaml=/dev/stdin --dry-run=client -o yaml > pipeline/serving/deploy.cm.yaml
+apiVersion: v1
+data:
+  mlserve.deploy.yaml: |
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: mlserve
+      name: mlserve
+      namespace: argo
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: mlserve
+      strategy: {}
+      template:
+        metadata:
+          creationTimestamp: null
+          labels:
+            app: mlserve
+        spec:
+          containers:
+          - image: mlflow:ce-assessment-conda
+            name: mlflow-serve
+            command: ["mlflow", "models", "serve", "-m", "MODEL_URI", "-p", "1234", "-h", "0.0.0.0"]
+            env:
+            - name: MLFLOW_TRACKING_URI
+              value: http://mlflow:5000
+            resources: {}
+    status: {}
+  deploy.sh: |
+    sed "s@MODEL_URI@$1@" /manifests/mlserve.deploy.yaml | tee /dev/stderr | kubectl apply -f -
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: mlserve
+  namespace: argo

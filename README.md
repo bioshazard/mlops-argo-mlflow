@@ -104,3 +104,8 @@ I did not complete my full list of planned iteration steps. I leave my planning 
 - Would have prefered to spend more time working on allowing Argo workflow provider to run outside of `argo` namespace.
 - Readiness probe on serve deployment to prevent failed calls
 - Not enough time to limit scope of deployer role, tried to gave super-admin access but failed in the time allotted
+
+## Scratch
+
+runs:/10f77abca3994387b52033d324401670/model
+curl -X POST -H "Content-Type:application/json; format=pandas-split" --data '{"columns":["temp"],"data":[[12.8]]}' http://localhost/mlserve/invocations
