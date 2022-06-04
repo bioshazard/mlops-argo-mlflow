@@ -25,8 +25,8 @@ spec:
       volumes:
       - name: gapp-creds-vol
         secret:
-          secretName: gapps-creds
-          optional: false # default setting; "gapps-creds" must exist
+          secretName: gapp-creds
+          optional: false # default setting; "gapp-creds" must exist
       container:
         name: train-test-job
         image: argo-step:training-conda
@@ -37,7 +37,7 @@ spec:
         - name: MLFLOW_TRACKING_URI
           value: http://mlflow:5000
         - name: GOOGLE_APPLICATION_CREDENTIALS
-          value: /code/secrets/gapps_creds.json
+          value: /code/secrets/gapp_creds.json
         volumeMounts:
         - name: gapp-creds-vol
           mountPath: "/code/secrets"

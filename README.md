@@ -21,13 +21,13 @@ Script | Function | Description
 `bash 00-setup-host.sh` | CLI Tools | You will still need to install `argo` CLI yourself, but if you want an automated solution for setting up a few of the tools please refer to this script. It uses `asdf` to manage `helm`, `kubectl`, and `kind` (per `.tools-version`).
 `bash 01-setup-mlops.sh` | Cluster and Services | This script stands up a [kind](https://kind.sigs.k8s.io/) cluster in your local Docker and install Nginx Ingress, Argo, MLflow. It will be listening on local :80 and :443 so your browser should be able to access it if run locally.
 `bash 02-e2e-pipeline.sh` | NOAA Model Training and Serving | This script puts your `gapp_creds.json` file into the k8s cluster as a secret, sets up the weekly pipeline cron, and runs a one-time job so you don't have to wait to see how the cron will perform. It tails the one-time job logs until the model finishes training, is stored in MLflow, and is deployed in a subsequent pipeline job. It takes a while for the serving endpoint to become available, but once it shows "listening" just ^C to quit out of the log tailing. This can be run over and over to execute the one-time job if you want to see it deploy a fresh model.
-`bash 03-test-api.sh` | The moment of truth! This final script generates a random temperature or accepts an argument for the temperature, then performs a `curl` against the newly deployed endpoint.
+`bash 03-test-api.sh` | API Testing | The moment of truth! This final script generates a random temperature or accepts an argument for the temperature, then performs a `curl` against the newly deployed endpoint.
 
 ### Web UI Access
 
 **MLflow** is accessible at http://localhost/mlflow and there is no authentication. MLflow supports authentication, but that is beyond the scope of this deliverable.
 
-The **Argo Workflow** UI itself serves as https, so it is available at https://localhost/workflows/argo and requires that you accept the self-signed cert. You can also type "thisisunsafe" (all one word) to get Chrome to let you by without clicking around.
+The **Argo Workflow** UI itself serves as https, so it is available at https://localhost/workflows/argo and requires that you accept the self-signed cert. You can also type `thisisunsafe` (all one word) to get Chrome to let you by without clicking around.
 
 ## API Testing Examples
 

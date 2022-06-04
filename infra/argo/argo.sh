@@ -2,7 +2,7 @@ kubectl create ns argo
 kubectl apply -n argo -f https://raw.githubusercontent.com/argoproj/argo-workflows/master/manifests/quick-start-postgres.yaml
 
 
-echo "# Wait for ingress controller to be ready..."
+echo "# Wait for argo to be ready..."
 time kubectl wait --namespace argo \
   --for=condition=ready pod \
   --selector=app=argo-server \
