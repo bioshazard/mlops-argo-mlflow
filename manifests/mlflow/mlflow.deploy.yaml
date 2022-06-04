@@ -19,7 +19,7 @@ spec:
         app: mlflow
     spec:
       containers:
-      - image: mlflow:ce-assessment
+      - image: mlflow:ce-assessment-conda
         name: mlflow
         resources: {}
       # TODO: Persistent Storage

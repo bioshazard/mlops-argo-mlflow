@@ -17,9 +17,14 @@ export MLFLOW_TRACKING_URI=http://localhost:8080/
 - x MLFlow on Kind, verify local push
 - x Argo on Kind with ingress
 - x Create job image
-- x Apply one-time job in argo 
-- Set argo train job for weekly execution 
-- Serve either with MLFlow or Seldon, promote latest model with Argo
+- x Apply one-time job in argo
+- x Set argo train job for weekly execution 
+- x Argo multi-step with output handoff
+- / Serve either with MLFlow or Seldon, promote latest model with Argo
+    - [INFO] new plan... serve with `mlflow serve`, create sa role in argo ns to permit deploy mgmt so it can update the deployment
+    - x update mlflow image with conda-based image for easy re-use in serve
+    - Run argo pipeline and serve built image with resulting URI (in place)
+    - Run argo pipeline and serve built image with resulting URI (with full separate deployment)
 - Finalize total automation bootstrap
     - docker build **and** kind load
 - Finalize README
@@ -39,3 +44,10 @@ export MLFLOW_TRACKING_URI=http://localhost:8080/
 - I ran everything as root for expediency
 - No TLS
 - Would have prefered to spend more time working on allowing Argo workflow provider to run outside of `argo` namespace.
+
+
+## Testing
+
+```
+curl -X POST -H "Content-Type:application/json; format=pandas-split" --data '{"columns":["temp"],"data":[[12.8]]}' http://127.0.0.1:1234/invocations
+```
