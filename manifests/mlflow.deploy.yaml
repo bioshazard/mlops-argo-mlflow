@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: mlflow
+  name: mlflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mlflow
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: mlflow
+    spec:
+      containers:
+      - image: mlflow:ce-assessment
+        name: mlflow
+        resources: {}
+      # TODO: Persistent Storage
+status: {}
