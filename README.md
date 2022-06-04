@@ -1,4 +1,4 @@
-# ConsumerEdge MLOps Assessment
+# MLOps Assessment
 
 ## Overview
 
