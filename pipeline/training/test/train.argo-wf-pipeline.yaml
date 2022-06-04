@@ -1,0 +1,60 @@
+# https://argoproj.github.io/argo-workflows/walk-through/argo-cli/
+# https://argoproj.github.io/argo-workflows/walk-through/output-parameters/
+
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow                  # new type of k8s spec
+metadata:
+  generateName: train-model-    # name of the workflow spec
+  namespace: argo
+spec:
+  entrypoint: e2e-train-serve
+  templates:
+
+    - name: e2e-train-serve
+      steps:
+      - - name: train-model-output
+          template: train
+      - - name: consume-test
+          template: print-out
+          arguments:
+            parameters:
+              - name: msg
+                value: "{{steps.train-model-output.outputs.parameters.hello-param}}"
+
+    - name: train              # name of the template
+      volumes:
+      - name: gapp-creds-vol
+        secret:
+          secretName: gapps-creds
+          optional: false # default setting; "gapps-creds" must exist
+      container:
+        name: train-test-job
+        image: argo-step:training
+        command: ["python", "train.py"]
+        # command: ['sh', '-c', 'sleep 99999']
+        resources: {}
+        env:
+        - name: MLFLOW_TRACKING_URI
+          value: http://mlflow:5000
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /code/secrets/gapps_creds.json
+        volumeMounts:
+        - name: gapp-creds-vol
+          mountPath: "/code/secrets"
+          readOnly: true
+      outputs:
+        parameters:
+        - name: hello-param
+          valueFrom:
+            path: /code/model_uri.txt
+    
+    - name: print-out
+      inputs:
+        parameters:
+        - name: msg
+      container:
+        image: docker/whalesay:latest
+        command: [cowsay]
+        args: ["{{inputs.parameters.msg}}"]
+
+

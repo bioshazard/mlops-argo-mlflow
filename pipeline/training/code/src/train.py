@@ -68,7 +68,6 @@ import logging
 logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)
 
-
 def eval_metrics(actual, pred):
     rmse = np.sqrt(mean_squared_error(actual, pred))
     mae = mean_absolute_error(actual, pred)
@@ -117,9 +116,13 @@ if __name__ == "__main__":
             # There are other ways to use the Model Registry, which depends on the use case,
             # please refer to the doc for more information:
             # https://mlflow.org/docs/latest/model-registry.html#api-workflow
-            mlflow.sklearn.log_model(lr, "model", registered_model_name="LRTempDewp")
+            modelInfo = mlflow.sklearn.log_model(lr, "model", registered_model_name="LRTempDewp")
         else:
-            mlflow.sklearn.log_model(lr, "model")
+            modelInfo = mlflow.sklearn.log_model(lr, "model")
+        
+        print(modelInfo.model_uri)
+        with open('/code/model_uri.txt', 'w') as f:
+          f.write(modelInfo.model_uri)
         
         # TODO: Log a plot if there is time left
         # mlflow.log_artifact("lr.png", artifact_path="plots")
