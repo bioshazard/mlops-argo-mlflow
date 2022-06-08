@@ -74,6 +74,7 @@ train-model-cron   4s    N/A        3h         0 0 * * 0              false
 - Would have prefered to spend more time working on allowing Argo workflow provider to run outside of `argo` namespace.
 - Readiness probe on `mlserve` deployment to keep service available on old model until the new model finished installing dependencies
 - Rollout strategy on `mlserve` deployment to further benefit availability 
+- Zero Logging, Monitoring, and Alerting. A real world example would include an observability apparatus for the infra and a model monitoring solution to detect drift and trigger re-training.
 
 ## Raw Iteration Notes
 
